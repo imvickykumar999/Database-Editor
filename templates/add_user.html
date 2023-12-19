@@ -10,7 +10,7 @@
 
         {% for i, j in col_name %}
           <div class='form-group'>
-            <label> {{j}} </label>
+            <label> {{j.title()}} </label>
             <input type='text' name='{{j}}' value="vicks" required class='form-control'>
           </div>
         {% endfor %}

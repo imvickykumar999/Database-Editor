@@ -11,14 +11,14 @@
   </center>
 
   <p class='text-right'><a href="{{url_for('add_user', database=database, table=table)}}" class='btn btn-success'>+ Add File</a></p>
-  <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for Country ...">
+  <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for column 2 ...">
   <table id="myTable" class='table table-bordered'>
   
     <thead>
       <th onclick="sortTable(0)"><u style="color:#1E90FF">S.No.</u></th>
 
-        {% for i, j in col_name %}
-          <th onclick="sortTable(i+1)"><u style="color:#1E90FF">{{j}}</u></th>
+        {% for i, j in ecol_name %}
+          <th onclick="sortTable(i+1)"><u style="color:#1E90FF">{{j.title()}}</u></th>
         {% endfor %}
 
       <th>File</th>
@@ -31,9 +31,8 @@
         <tr>
           <td>{{loop.index}}</td>
 
-          {% for i, j in col_name %}
-            {{i}}
-            <td>{{row.j.title()}}</td>
+          {% for i in col_name %}
+            <td>{{row[i].title()}}</td>
           {% endfor %}
 
           <td>
@@ -51,9 +50,9 @@
             </a>
           </td>
 
-          <td><a href='{{url_for("edit_user",uid=row.UID)}}' class='btn btn-primary'>Edit</a></td>
-          <td><a href='{{url_for("delete_user",uid=row.UID)}}' class='btn btn-danger'>Delete</a></td>
-        
+          <td><a href='{{url_for("edit_user", uid=row.UID, database=database, table=table)}}' class='btn btn-primary'>Edit</a></td>
+          <td><a href='{{url_for("delete_user", uid=row.UID, database=database, table=table)}}' onclick='return confirm("Are You Sure")' class='btn btn-danger'>Delete</a></td>
+         
         </tr>
       {%endfor%}
     </tbody>

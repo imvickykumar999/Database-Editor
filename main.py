@@ -4,10 +4,10 @@ import sqlite3 as sql
 def auth_table():
 	con = sql.connect('mydb/db_sample.db')
 	cur = con.cursor()
-	cur.execute("DROP TABLE IF EXISTS users")
+	# cur.execute("DROP TABLE IF EXISTS users")
 
 	sql3 ='''
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
 "UID"   INTEGER PRIMARY KEY AUTOINCREMENT,
 "UNAME" varchar(50) NOT NULL,
 "EMAIL" varchar(50) NOT NULL,

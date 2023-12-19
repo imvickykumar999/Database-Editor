@@ -126,10 +126,6 @@ def add_user(database, table):
         ques = ','.join([i for i in ques])
         col_name = ','.join([i for i in col_name])
 
-        print(col_name)
-        print(ques)
-        print(uname)
-
         cur.execute(f"insert into {table}({col_name}) values ({ques})", tuple(uname))
         con.commit()
 
@@ -144,7 +140,8 @@ def add_user(database, table):
             datas=data, 
             database=database,
             table=table,
-            col_name=enumerate(col_name)
+            ecol_name=enumerate(col_name),
+            col_name=col_name,
         )
 
     col_name = [description[0] for description in cur.description[1:-1]]
@@ -155,17 +152,22 @@ def add_user(database, table):
     )
 
 
-@app.route("/edit_user/<string:uid>",methods=['POST','GET'])
+@app.route("/edit_user/<database>/<table>/<string:uid>",methods=['POST','GET'])
 @is_logged_in
-def edit_user(uid):
+def edit_user(database, table, uid):
+
+    con=sql.connect(f"mydb/{database}.db")
+    con.row_factory=sql.Row
+    cur=con.cursor()
+
+    cur.execute(f"select * from {table}")    
+    uname = []
 
     if request.method=='POST':
-        uname=request.form['uname']
-        contact=request.form['contact']
-        name=request.form['name']
+        col_name = [description[0] for description in cur.description[1:-1]]
 
-        con=sql.connect("mydb/db_web.db")
-        cur=con.cursor()
+        for i in col_name:
+            uname.append(request.form[i])
 
         if 'file' not in request.files:
             flash('No file part','danger')
@@ -173,8 +175,10 @@ def edit_user(uid):
         file = request.files['file']
         if file.filename == '':
             flash('No file selected','warning')
+            col_name = ','.join([f'{i}=?' for i in col_name])
 
-            cur.execute("update users set UNAME=?,CONTACT=?,NAME=? where UID=?",(uname,contact,name,uid))
+            uname.append(uid)
+            cur.execute(f"update {table} set {col_name} where UID=?", tuple(uname))
             con.commit()
 
         else:
@@ -183,42 +187,74 @@ def edit_user(uid):
                 new_filename = secure_filename(filename+str(random.randint(10000,99999))+"."+file_extension)
                 file.save(os.path.join(app.root_path, UPLOAD_FOLDER, new_filename))
 
-            data = cur.execute("select FILE from users where UID=?",(uid,)).fetchall()
+                uname.append(new_filename)
+                col_name.append('FILE')
+
+            col_name = ','.join([f'{i}=?' for i in col_name])
+            data = cur.execute(f"select FILE from {table} where UID=?",(uid,)).fetchall()
+
             data = f'./static/files/{data[0][0]}'
             os.remove(data)
 
-            cur.execute("update users set UNAME=?,CONTACT=?,NAME=?,FILE=? where UID=?",(uname,contact,name,new_filename,uid))
+            uname.append(uid)
+            cur.execute(f"update {table} set {col_name} where UID=?", tuple(uname))
             con.commit()
 
         flash('Currency Updated','success')
-        return redirect(url_for("home"))
+        cur.execute(f"select * from {table}")
+        data=cur.fetchall()
 
-    con=sql.connect("mydb/db_web.db")
+        col_name = [description[0] for description in cur.description[1:-1]]
+        con.commit()
+
+        return render_template("index.html", 
+            datas=data, 
+            database=database,
+            table=table,
+            ecol_name=enumerate(col_name),
+            col_name=col_name,
+        )
+    
+    cur.execute(f"select * from {table} where UID=?",(uid,))
+    data=cur.fetchone()
+
+    col_name = [description[0] for description in cur.description[1:-1]]
+    return render_template("edit_user.html", 
+        table=table,
+        datas=data,
+        database=database,
+        col_name=enumerate(col_name)
+    )
+
+@app.route("/delete_user/<database>/<table>/<string:uid>",methods=['GET'])
+@is_logged_in
+def delete_user(database, table, uid):
+
+    con=sql.connect(f"mydb/{database}.db")
     con.row_factory=sql.Row
     cur=con.cursor()
 
-    cur.execute("select * from users where UID=?",(uid,))
-    data=cur.fetchone()
-    return render_template("edit_user.html",datas=data)
-
-
-@app.route("/delete_user/<string:uid>",methods=['GET'])
-@is_logged_in
-def delete_user(uid):
-    con=sql.connect("mydb/db_web.db")
-
-    cur=con.cursor()
-    data = cur.execute("select FILE from users where UID=?",(uid,)).fetchall()
-
+    data = cur.execute(f"select FILE from {table} where UID=?",(uid,)).fetchall()
     data = f'static/files/{data[0][0]}'
     os.remove(data)
 
-    cur.execute("delete from users where UID=?",(uid,))
+    cur.execute(f"delete from {table} where UID=?",(uid,))
     con.commit()
 
     flash('Currency Deleted','warning')
-    return redirect(url_for("home"))
+    cur.execute(f"select * from {table}")
+    data=cur.fetchall()
 
+    col_name = [description[0] for description in cur.description[1:-1]]
+    con.commit()
+
+    return render_template("index.html", 
+        datas=data, 
+        database=database,
+        table=table,
+        ecol_name=enumerate(col_name),
+        col_name=col_name,
+    )
      
 @app.route("/", methods=['GET', 'POST'])
 @is_logged_in
@@ -226,12 +262,12 @@ def home():
     
     if request.method=='POST':
         mydb = request.form["mydb"]
-        table = request.form["mydb"]
+        table = request.form["table"]
         
         sql3 = request.form["make_table"]
         my_db = f'mydb/{mydb}.db'
 
-        sql3 = f'''CREATE TABLE {table} (
+        sql3 = f'''CREATE TABLE IF NOT EXISTS {table} (
 "UID" INTEGER PRIMARY KEY AUTOINCREMENT,
 {sql3}
 "FILE" TEXT
@@ -239,7 +275,7 @@ def home():
 
         con = sql.connect(my_db)
         cur = con.cursor()
-        cur.execute(f"DROP TABLE IF EXISTS {table}")
+        # cur.execute(f"DROP TABLE IF EXISTS {table}")
         
         cur.execute(sql3)
         con.commit()
@@ -260,7 +296,6 @@ def index(database, table):
 
     cur.execute(f"select * from {table}")
     data=cur.fetchall()
-
     col_name = [description[0] for description in cur.description[1:-1]]
     con.commit()
 
@@ -268,7 +303,8 @@ def index(database, table):
         datas=data, 
         database=database,
         table=table,
-        col_name=enumerate(col_name)
+        ecol_name=enumerate(col_name),
+        col_name=col_name,
     )
 
 
