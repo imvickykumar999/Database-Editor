@@ -2,7 +2,7 @@
 import sqlite3 as sql
 
 def crud_table():
-	con = sql.connect('db_web.db')
+	con = sql.connect('mydb/db_web.db')
 	cur = con.cursor()
 	cur.execute("DROP TABLE IF EXISTS users")
 
@@ -21,7 +21,7 @@ CREATE TABLE "users" (
 
 
 def auth_table():
-	con = sql.connect('db_sample.db')
+	con = sql.connect('mydb/db_sample.db')
 	cur = con.cursor()
 	cur.execute("DROP TABLE IF EXISTS users")
 

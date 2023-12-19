@@ -31,7 +31,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 @app.route('/login',methods=['POST','GET'])
 def login():
     status=True
-    con=sql.connect("db_sample.db")
+    con=sql.connect("mydb/db_sample.db")
 
     if request.method=='POST':
         email=request.form["email"]
@@ -68,7 +68,7 @@ def reg():
     # return render_template('404.html', error=error), 404
 
     status=False
-    con=sql.connect("db_sample.db")
+    con=sql.connect("mydb/db_sample.db")
 
     if request.method=='POST':
         name=request.form["uname"]
@@ -92,7 +92,7 @@ def logout():
 
 @app.route("/index/<database>/<table>")
 def index(database, table):
-    con=sql.connect(f"{database}.db")
+    con=sql.connect(f"mydb/{database}.db")
     con.row_factory=sql.Row
     cur=con.cursor()
 
@@ -122,7 +122,7 @@ def add_user():
             new_filename = secure_filename(filename+str(random.randint(10000,99999))+"."+file_extension)
             file.save(os.path.join(app.root_path, UPLOAD_FOLDER, new_filename))
 
-        con=sql.connect("db_web.db")
+        con=sql.connect("mydb/db_web.db")
         cur=con.cursor()
 
         cur.execute("insert into users(UNAME,CONTACT,NAME,FILE) values (?,?,?,?)",(uname,contact,name,new_filename))
@@ -142,7 +142,7 @@ def edit_user(uid):
         contact=request.form['contact']
         name=request.form['name']
 
-        con=sql.connect("db_web.db")
+        con=sql.connect("mydb/db_web.db")
         cur=con.cursor()
 
         if 'file' not in request.files:
@@ -171,7 +171,7 @@ def edit_user(uid):
         flash('Currency Updated','success')
         return redirect(url_for("home"))
 
-    con=sql.connect("db_web.db")
+    con=sql.connect("mydb/db_web.db")
     con.row_factory=sql.Row
     cur=con.cursor()
 
@@ -183,7 +183,7 @@ def edit_user(uid):
 @app.route("/delete_user/<string:uid>",methods=['GET'])
 @is_logged_in
 def delete_user(uid):
-    con=sql.connect("db_web.db")
+    con=sql.connect("mydb/db_web.db")
 
     cur=con.cursor()
     data = cur.execute("select FILE from users where UID=?",(uid,)).fetchall()
@@ -201,24 +201,26 @@ def delete_user(uid):
 @app.route("/", methods=['GET', 'POST'])
 @is_logged_in
 def home():
-    import main
     
     if request.method=='POST':
+        import main
+
         mydb = request.form["mydb"]
         table = request.form["mydb"]
-        mydb = f'{mydb}.db'
+        my_db = f'mydb/{mydb}.db'
 
         sql3 = f'''
-        CREATE TABLE {table} (
-        "UID"	    INTEGER PRIMARY KEY AUTOINCREMENT,
-        "UNAME"	    TEXT,
-        "NAME"	    TEXT,
-        "FILE"	    TEXT,
-        "COUNTRY"	TEXT
-        )'''
+CREATE TABLE {table} (
+"UID"	    INTEGER PRIMARY KEY AUTOINCREMENT,
+"UNAME"	    TEXT,
+"NAME"	    TEXT,
+"FILE"	    TEXT,
+"COUNTRY"	TEXT
+)'''
 
-        main.db_table(sql3, mydb, table)
-        return render_template('home.html', mydb=mydb)
+        main.db_table(sql3, my_db, table)
+        link = url_for('index', database=mydb, table=table)
+        return redirect(link)
     else:
         return render_template('home.html')
 
