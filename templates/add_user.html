@@ -6,22 +6,14 @@
     <div class='col-5 mx-auto'>
 
       <h3>Add Currency</h3><hr>
-      <form method='post' enctype='multipart/form-data' action='{{url_for("add_user")}}'>
+      <form method='post' enctype='multipart/form-data' action="{{url_for('add_user', database=database, table=table)}}">
 
-        <div class='form-group'>
-          <label>Currency Year</label>
-          <input type='text' name='uname' required class='form-control'>
-        </div>
-
-        <div class='form-group'>
-          <label>Currency Country</label>
-          <input type='text' name='contact' required class='form-control'>
-        </div>
-
-        <div class='form-group'>
-          <label>Currency Name</label>
-          <input type='text' name='name' required class='form-control'>
-        </div>
+        {% for i, j in col_name %}
+          <div class='form-group'>
+            <label> {{j}} </label>
+            <input type='text' name='{{j}}' value="vicks" required class='form-control'>
+          </div>
+        {% endfor %}
 
         <div class='form-group'>
             <p><input type='file' name='file' required></p>

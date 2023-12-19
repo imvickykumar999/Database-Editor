@@ -40,7 +40,6 @@ def login():
         cur.execute("select UNAME from users where EMAIL=? and UPASS=?",(email,pwd))
         data=cur.fetchone()
 
-        print(data)
         if data:
             session['logged_in']=True
             session['username']=data[0]
@@ -90,25 +89,23 @@ def logout():
 	return redirect(url_for('login'))
 
 
-@app.route("/index/<database>/<table>")
-def index(database, table):
+@app.route("/add_user/<database>/<table>", methods=['POST','GET'])
+@is_logged_in
+def add_user(database, table):
+
     con=sql.connect(f"mydb/{database}.db")
     con.row_factory=sql.Row
     cur=con.cursor()
 
-    cur.execute(f"select * from {table}")
-    data=cur.fetchall()
-    return render_template("index.html", datas=data)
-
-
-@app.route("/add_user",methods=['POST','GET'])
-@is_logged_in
-def add_user():
+    cur.execute(f"select * from {table}")    
+    uname = []
+    ques = []
 
     if request.method=='POST':
-        uname=request.form['uname']
-        contact=request.form['contact']
-        name=request.form['name']
+        col_name = [description[0] for description in cur.description[1:-1]]
+        for i in col_name:
+            uname.append(request.form[i])
+            ques.append('?')
 
         if 'file' not in request.files:
             flash('No file part','danger')
@@ -122,15 +119,40 @@ def add_user():
             new_filename = secure_filename(filename+str(random.randint(10000,99999))+"."+file_extension)
             file.save(os.path.join(app.root_path, UPLOAD_FOLDER, new_filename))
 
-        con=sql.connect("mydb/db_web.db")
-        cur=con.cursor()
+            uname.append(new_filename)
+            col_name.append('FILE')
+            ques.append('?')
 
-        cur.execute("insert into users(UNAME,CONTACT,NAME,FILE) values (?,?,?,?)",(uname,contact,name,new_filename))
+        ques = ','.join([i for i in ques])
+        col_name = ','.join([i for i in col_name])
+
+        print(col_name)
+        print(ques)
+        print(uname)
+
+        cur.execute(f"insert into {table}({col_name}) values ({ques})", tuple(uname))
         con.commit()
 
         flash('Currency Added','success')
-        return redirect(url_for("home"))
-    return render_template("add_user.html")
+        cur.execute(f"select * from {table}")
+        data=cur.fetchall()
+
+        col_name = [description[0] for description in cur.description[1:-1]]
+        con.commit()
+
+        return render_template("index.html", 
+            datas=data, 
+            database=database,
+            table=table,
+            col_name=enumerate(col_name)
+        )
+
+    col_name = [description[0] for description in cur.description[1:-1]]
+    return render_template("add_user.html", 
+        table=table,
+        database=database,
+        col_name=enumerate(col_name)
+    )
 
 
 @app.route("/edit_user/<string:uid>",methods=['POST','GET'])
@@ -197,32 +219,57 @@ def delete_user(uid):
     flash('Currency Deleted','warning')
     return redirect(url_for("home"))
 
-
+     
 @app.route("/", methods=['GET', 'POST'])
 @is_logged_in
 def home():
     
     if request.method=='POST':
-        import main
-
         mydb = request.form["mydb"]
         table = request.form["mydb"]
+        
+        sql3 = request.form["make_table"]
         my_db = f'mydb/{mydb}.db'
 
-        sql3 = f'''
-CREATE TABLE {table} (
-"UID"	    INTEGER PRIMARY KEY AUTOINCREMENT,
-"UNAME"	    TEXT,
-"NAME"	    TEXT,
-"FILE"	    TEXT,
-"COUNTRY"	TEXT
+        sql3 = f'''CREATE TABLE {table} (
+"UID" INTEGER PRIMARY KEY AUTOINCREMENT,
+{sql3}
+"FILE" TEXT
 )'''
 
-        main.db_table(sql3, my_db, table)
+        con = sql.connect(my_db)
+        cur = con.cursor()
+        cur.execute(f"DROP TABLE IF EXISTS {table}")
+        
+        cur.execute(sql3)
+        con.commit()
+        con.close()
+        
         link = url_for('index', database=mydb, table=table)
         return redirect(link)
     else:
         return render_template('home.html')
+
+
+@app.route("/index/<database>/<table>")
+@is_logged_in
+def index(database, table):
+    con=sql.connect(f"mydb/{database}.db")
+    con.row_factory=sql.Row
+    cur=con.cursor()
+
+    cur.execute(f"select * from {table}")
+    data=cur.fetchall()
+
+    col_name = [description[0] for description in cur.description[1:-1]]
+    con.commit()
+
+    return render_template("index.html", 
+        datas=data, 
+        database=database,
+        table=table,
+        col_name=enumerate(col_name)
+    )
 
 
 @app.errorhandler(404)

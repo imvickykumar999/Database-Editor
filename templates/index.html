@@ -10,15 +10,16 @@
     {% endif %}
   </center>
 
-  <p class='text-right'><a href='{{url_for("add_user")}}' class='btn btn-success'>+ Add File</a></p>
+  <p class='text-right'><a href="{{url_for('add_user', database=database, table=table)}}" class='btn btn-success'>+ Add File</a></p>
   <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for Country ...">
   <table id="myTable" class='table table-bordered'>
   
     <thead>
       <th onclick="sortTable(0)"><u style="color:#1E90FF">S.No.</u></th>
-      <th onclick="sortTable(1)"><u style="color:#1E90FF">Year</u></th>
-      <th onclick="sortTable(2)"><u style="color:#1E90FF">Name</u></th>
-      <th onclick="sortTable(3)"><u style="color:#1E90FF">Country</u></th>
+
+        {% for i, j in col_name %}
+          <th onclick="sortTable(i+1)"><u style="color:#1E90FF">{{j}}</u></th>
+        {% endfor %}
 
       <th>File</th>
       <th>Edit</th>
@@ -28,11 +29,12 @@
     <tbody>
       {% for row in datas %}
         <tr>
-
           <td>{{loop.index}}</td>
-          <td>{{row.UNAME.title()}}</td>
-          <td>{{row.NAME.title()}}</td>
-          <td>{{row.CONTACT.title()}}</td>
+
+          {% for i, j in col_name %}
+            {{i}}
+            <td>{{row.j.title()}}</td>
+          {% endfor %}
 
           <td>
             <a target="_blank" href="/static/files/{{row.FILE}}">

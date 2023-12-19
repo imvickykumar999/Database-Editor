@@ -1,25 +1,6 @@
 
 import sqlite3 as sql
 
-def crud_table():
-	con = sql.connect('mydb/db_web.db')
-	cur = con.cursor()
-	cur.execute("DROP TABLE IF EXISTS users")
-
-	sql3 ='''
-CREATE TABLE "users" (
-"UID"	    INTEGER PRIMARY KEY AUTOINCREMENT,
-"UNAME"	    TEXT,
-"NAME"	    TEXT,
-"FILE"	    TEXT,
-"CONTACT"	TEXT
-)'''
-
-	cur.execute(sql3)
-	con.commit()
-	con.close()
-
-
 def auth_table():
 	con = sql.connect('mydb/db_sample.db')
 	cur = con.cursor()
@@ -38,15 +19,4 @@ CREATE TABLE "users" (
 	con.close()
 	
 
-def db_table(sql3, mydb, table):
-	con = sql.connect(mydb)
-	cur = con.cursor()
-	cur.execute(f"DROP TABLE IF EXISTS {table}")
-	
-	cur.execute(sql3)
-	con.commit()
-	con.close()
-
-
-crud_table()
-auth_table()
+# auth_table()
