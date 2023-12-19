@@ -43,8 +43,10 @@
                   <source src="/static/files/{{row.FILE}}" type="video/mp4">
                 </video>
 
-              {% else %}
+              {% elif row.FILE.split('.')[-1] in ['png', 'jpg', 'jpeg', 'svg', 'gif',] %}
                 <img id="myImg" src="/static/files/{{row.FILE}}" alt="{{row.FILE}}" style="width:100%;max-width:100px">
+              {% else %}
+                {{row.FILE}}
               {% endif %}
 
             </a>
