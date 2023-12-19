@@ -19,4 +19,4 @@ CREATE TABLE IF NOT EXISTS "users" (
 	con.close()
 	
 
-# auth_table()
+auth_table()
