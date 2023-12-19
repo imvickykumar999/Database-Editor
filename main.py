@@ -48,20 +48,5 @@ def db_table(sql3, mydb, table):
 	con.close()
 
 
-# mydb = 'db_sample.db'
-# table = 'users'
-
-# sql3 = f'''
-# CREATE TABLE {table} (
-# "UID"	    INTEGER PRIMARY KEY AUTOINCREMENT,
-# "UNAME"	    TEXT,
-# "NAME"	    TEXT,
-# "FILE"	    TEXT,
-# "COUNTRY"	TEXT
-# )'''
-
-# db_table(sql3, mydb, table)
-
-
 crud_table()
 auth_table()

@@ -45,7 +45,7 @@ def login():
             session['logged_in']=True
             session['username']=data[0]
             flash('Login Successfully','success')
-            return redirect('index')
+            return render_template('home.html')
         else:
             flash('Invalid Login. Try Again','danger')
     return render_template("login.html")
@@ -90,16 +90,15 @@ def logout():
 	return redirect(url_for('login'))
 
 
-@app.route("/")
-@app.route("/index")
-def index():
-    con=sql.connect("db_web.db")
+@app.route("/index/<database>/<table>")
+def index(database, table):
+    con=sql.connect(f"{database}.db")
     con.row_factory=sql.Row
     cur=con.cursor()
 
-    cur.execute("select * from users")
+    cur.execute(f"select * from {table}")
     data=cur.fetchall()
-    return render_template("index.html",datas=data)
+    return render_template("index.html", datas=data)
 
 
 @app.route("/add_user",methods=['POST','GET'])
@@ -130,7 +129,7 @@ def add_user():
         con.commit()
 
         flash('Currency Added','success')
-        return redirect(url_for("index"))
+        return redirect(url_for("home"))
     return render_template("add_user.html")
 
 
@@ -170,7 +169,7 @@ def edit_user(uid):
             con.commit()
 
         flash('Currency Updated','success')
-        return redirect(url_for("index"))
+        return redirect(url_for("home"))
 
     con=sql.connect("db_web.db")
     con.row_factory=sql.Row
@@ -196,7 +195,32 @@ def delete_user(uid):
     con.commit()
 
     flash('Currency Deleted','warning')
-    return redirect(url_for("index"))
+    return redirect(url_for("home"))
+
+
+@app.route("/", methods=['GET', 'POST'])
+@is_logged_in
+def home():
+    import main
+    
+    if request.method=='POST':
+        mydb = request.form["mydb"]
+        table = request.form["mydb"]
+        mydb = f'{mydb}.db'
+
+        sql3 = f'''
+        CREATE TABLE {table} (
+        "UID"	    INTEGER PRIMARY KEY AUTOINCREMENT,
+        "UNAME"	    TEXT,
+        "NAME"	    TEXT,
+        "FILE"	    TEXT,
+        "COUNTRY"	TEXT
+        )'''
+
+        main.db_table(sql3, mydb, table)
+        return render_template('home.html', mydb=mydb)
+    else:
+        return render_template('home.html')
 
 
 @app.errorhandler(404)
