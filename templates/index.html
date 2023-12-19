@@ -1,0 +1,71 @@
+
+{% extends 'layout.html' %}
+{% block body %}
+
+  <center>
+    {% if session.username %}
+      <h3 class='jumbotron'>Welcome {{session.username}}</h3>
+    {% else %}
+      <h3 class='jumbotron'>Database Editor</h3>
+    {% endif %}
+  </center>
+
+  <p class='text-right'><a href='{{url_for("add_user")}}' class='btn btn-success'>+ Add File</a></p>
+  <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for Country ...">
+  <table id="myTable" class='table table-bordered'>
+  
+    <thead>
+      <th onclick="sortTable(0)"><u style="color:#1E90FF">S.No.</u></th>
+      <th onclick="sortTable(1)"><u style="color:#1E90FF">Year</u></th>
+      <th onclick="sortTable(2)"><u style="color:#1E90FF">Name</u></th>
+      <th onclick="sortTable(3)"><u style="color:#1E90FF">Country</u></th>
+
+      <th>File</th>
+      <th>Edit</th>
+      <th>Delete</th>
+    </thead>
+
+    <tbody>
+      {% for row in datas %}
+        <tr>
+
+          <td>{{loop.index}}</td>
+          <td>{{row.UNAME.title()}}</td>
+          <td>{{row.NAME.title()}}</td>
+          <td>{{row.CONTACT.title()}}</td>
+
+          <td>
+            <a target="_blank" href="/static/files/{{row.FILE}}">
+              {% if row.FILE.split('.')[-1] in ['mp4', 'avi',] %}
+              
+                <video muted id="myImg" alt="{{row.FILE}}" style="width:100%;max-width:100px" controls>
+                  <source src="/static/files/{{row.FILE}}" type="video/mp4">
+                </video>
+
+              {% else %}
+                <img id="myImg" src="/static/files/{{row.FILE}}" alt="{{row.FILE}}" style="width:100%;max-width:100px">
+              {% endif %}
+
+            </a>
+          </td>
+
+          <td><a href='{{url_for("edit_user",uid=row.UID)}}' class='btn btn-primary'>Edit</a></td>
+          <td><a href='{{url_for("delete_user",uid=row.UID)}}' class='btn btn-danger'>Delete</a></td>
+        
+        </tr>
+      {%endfor%}
+    </tbody>
+
+  </table>
+  <br>
+
+  <center>
+    Made with ❤️ by 
+    <a target="_blank"
+      href="https://imvickykumar999.github.io/Currency-Collection/">
+      @imvickykumar999
+    </a>
+  </center>
+
+  <br>
+{% endblock %}
