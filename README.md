@@ -1,3 +1,5 @@
+<link rel="shortcut icon" type="image/x-icon" href="https://static-00.iconduck.com/assets.00/office-database-icon-1966x2048-mah3mrgd.png">
+
 ># `Database Editor`
 >
 >      Create databases & tables, upload files, and apply CRUD Operation.
