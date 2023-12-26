@@ -26,3 +26,28 @@ DML statements operate only on the contents of a table and not on its structure.
 - DELETE is the DML statement used for this operation.
 - INSERT is the DML statement used for this operation.
 - RENAME is the DDL statement used for this operation.
+
+-------------------
+
+## Inserting Values
+
+Suppose you have an empty table named `wrestlers` having the following columns:
+
+    Name
+    Wrestler_Rank
+    Height
+    Weight
+    Age
+
+Write a query to add the following values to this table:
+
+- (Undertaker, 1, 208, 136, 54)
+- (Kane, 2, 213, 147, 52)
+
+```sql
+INSERT INTO wrestlers
+  (name, wrestler_rank, height, weight, age)
+VALUES
+  ('Undertaker', 1, 208, 136, 54),
+  ('Kane', 2, 213, 147, 52);
+```
